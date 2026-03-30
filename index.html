@@ -334,16 +334,15 @@ function startVoice() {
   const searchBox = document.querySelector("input");
 
   const recognition = new webkitSpeechRecognition();
-  recognition.lang = "hi-IN";
+
+  // 👉 English में सुनो
+  recognition.lang = "en-US";
 
   recognition.start();
   mic.style.color = "red";
 
   recognition.onresult = function(event) {
     let text = event.results[0][0].transcript.toLowerCase();
-
-    // 👉 हिंदी को इंग्लिश में बदलो
-    text = convertToEnglish(text);
 
     searchBox.value = text;
 
@@ -359,19 +358,7 @@ function startVoice() {
     mic.style.color = "white";
   };
 }
-
-
-// 🔥 हिंदी → इंग्लिश कन्वर्ट
-function convertToEnglish(text) {
-
-  if (text.includes("फाइनेंस")) return "finance";
-  if (text.includes("न्यूज") || text.includes("न्यूज़")) return "news";
-  if (text.includes("बैंक")) return "bank";
-  if (text.includes("वीडियो")) return "video";
-
-  // default वही text
-  return text;
-}
+</script>
 
 </script>
 
