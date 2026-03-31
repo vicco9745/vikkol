@@ -337,25 +337,32 @@ function startVoice() {
   const recognition = new webkitSpeechRecognition();
 
   // 👉 English में सुनो
-  recognition.onresult = function(event){
+  
+recognition.onresult = function(event){
 
   let text = event.results[0][0].transcript;
 
-  // 🔥 CLEAN TEXT (बहुत जरूरी)
+  // 🔥 CLEAN TEXT (Hidden + space fix)
   text = text
     .toLowerCase()
     .trim()
     .replace(/[\u200B-\u200D\uFEFF]/g, '');
 
-  // 👉 SAME SEARCH BOX में डाल
   const searchBox = document.getElementById("search");
+
+  // 👉 पहले खाली करो (force change)
+  searchBox.value = "";
+
+  // 👉 फिर नया text डालो
   searchBox.value = text;
 
-  // 🔥 SAME जगह trigger (जहाँ typing होता है)
+  // 🔥 INPUT EVENT trigger (जैसे typing)
+  searchBox.dispatchEvent(new Event('input', { bubbles: true }));
+
+  // 🔥 Backup (अगर ऊपर fail हो)
   searchNews();
 
 };
-
 
   
   recognition.onerror = function(event) {
