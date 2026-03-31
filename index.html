@@ -338,71 +338,111 @@ function startVoice() {
 
   // 👉 English में सुनो
   
-recognition.lang = "en-US";
+// Make sure you have these elements in your HTML:
+// <input type="text" id="search" placeholder="Search...">
+// <button id="micButton">🎤</button>
 
+const mic = document.getElementById("micButton");
+const searchBox = document.getElementById("search");
+
+// Check if browser supports speech recognition
+if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+  alert("Your browser doesn't support voice recognition. Please use Chrome or Edge.");
+  mic.style.display = "none";
+}
+
+// Setup speech recognition
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+const recognition = new SpeechRecognition();
+
+recognition.lang = "en-US";
+recognition.continuous = false;  // Stop after one result
+recognition.interimResults = false;  // Get final result only
+
+// Start voice recognition when mic is clicked
+mic.addEventListener("click", function() {
   recognition.start();
   mic.style.color = "red";
+  mic.style.backgroundColor = "#ffcccc"; // Optional visual feedback
+});
 
-  recognition.onresult = function(event) {
-    let text = event.results[0][0].transcript.toLowerCase();
-
-    searchBox.value = text;
-
-    mic.style.color = "white";
-  };
-
-  recognition.onerror = function(event) {
-    mic.style.color = "white";
-    alert("Error: " + event.error);
-  };
-
-  recognition.onend = function() {
-    mic.style.color = "white";
-  };
-}
-recognition.onresult = function(event){
-
+// When speech is recognized
+recognition.onresult = function(event) {
   let text = event.results[0][0].transcript;
-
-  // 🔥 CLEAN TEXT (Hidden + space fix)
+  
+  // Clean the text
   text = text
     .toLowerCase()
     .trim()
-    .replace(/[\u200B-\u200D\uFEFF]/g, '');
-
-  const searchBox = document.getElementById("search");
-
-  // 👉 पहले खाली करो (force change)
-  searchBox.value = "";
-
-  // 👉 फिर नया text डालो
+    .replace(/[\u200B-\u200D\uFEFF]/g, '')
+    .replace(/[^\w\s]/g, ''); // Remove special characters
+  
+  // Set the text in search box
   searchBox.value = text;
-
-  // 🔥 INPUT EVENT trigger (जैसे typing)
-  searchBox.dispatchEvent(new Event('input', { bubbles: true }));
-
-  // 🔥 Backup (अगर ऊपर fail हो)
-  searchNews();
-
+  
+  // Trigger search function
+  searchNews(); // Make sure this function exists
+  
+  // Visual feedback - success
+  mic.style.color = "white";
+  mic.style.backgroundColor = ""; // Reset background
 };
 
-
-
-
-
-
+// Handle errors
+recognition.onerror = function(event) {
+  console.error("Speech recognition error:", event.error);
+  mic.style.color = "white";
+  mic.style.backgroundColor = "";
   
-
-  
-  recognition.onerror = function(event) {
-    mic.style.color = "white";
+  if (event.error === "not-allowed") {
+    alert("Please allow microphone access to use voice search.");
+  } else if (event.error === "no-speech") {
+    // Silent fail - user just didn't speak
+    console.log("No speech detected");
+  } else {
     alert("Error: " + event.error);
-  };
+  }
+};
 
-  recognition.onend = function() {
-    mic.style.color = "white";
-  };
+// Reset mic color when recognition ends
+recognition.onend = function() {
+  mic.style.color = "white";
+  mic.style.backgroundColor = "";
+};
+
+// Function to search news (you need to implement this)
+function searchNews() {
+  const query = searchBox.value.trim();
+  
+  if (query === "") {
+    return;
+  }
+  
+  console.log("Searching for:", query);
+  
+  // Example: Fetch news from API
+  // fetch(`https://gnews.io/api/v4/search?q=${query}&token=YOUR_API_KEY`)
+  //   .then(response => response.json())
+  //   .then(data => {
+  //     displayResults(data.articles);
+  //   })
+  //   .catch(error => console.error("Error fetching news:", error));
+  
+  // Or call your existing search function
+  // Your existing search logic here
 }
+
+// Optional: Auto-search when user types
+searchBox.addEventListener("input", function() {
+  searchNews();
+});
+
+
+
+
+
+
+  
 </script>
 
 </html>
