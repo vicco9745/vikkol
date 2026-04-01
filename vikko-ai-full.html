@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vikko AI — Full Assistant</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#06070c;
+  --s1:#0d0e16;
+  --s2:#12131f;
+  --s3:#181926;
+  --s4:#1e1f2e;
+  --border:#252638;
+  --border2:#2e3048;
+  --a1:#00c6ff;
+  --a2:#ff5f6d;
+  --a3:#ffd700;
+  --a4:#7bed9f;
+  --text:#e8eaf6;
+  --dim:#5c5f7a;
+  --dim2:#8085a8;
+  --glow:rgba(0,198,255,0.13);
+  --red-glow:rgba(255,95,109,0.13);
+}
+html,body{height:100%;overflow:hidden;background:var(--bg);}
+body{font-family:'Syne',sans-serif;color:var(--text);display:flex;flex-direction:column;}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:3px;height:3px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:10px;}
+
+/* ══════════════════════════════
+   HEADER
+══════════════════════════════ */
+.hdr{
+  height:56px;background:var(--s1);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;
+  padding:0 16px;gap:12px;flex-shrink:0;
+  position:relative;z-index:20;
+}
+.hdr-logo{
+  width:36px;height:36px;border-radius:11px;
+  background:linear-gradient(135deg,var(--a1),#0055ff);
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:800;color:#06070c;flex-shrink:0;
+  box-shadow:0 0 18px rgba(0,198,255,0.35);
+  font-family:'Syne',sans-serif;letter-spacing:-0.5px;
+}
+.hdr-title{flex:1;min-width:0;}
+.hdr-title h1{font-size:14px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.hdr-title p{font-size:10px;color:var(--dim2);font-family:'JetBrains Mono',monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.hdr-right{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.badge{
+  display:flex;align-items:center;gap:5px;
+  background:rgba(123,237,159,0.08);border:1px solid rgba(123,237,159,0.2);
+  border-radius:20px;padding:4px 10px;
+  font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--a4);
+}
+.badge-dot{width:6px;height:6px;border-radius:50%;background:var(--a4);box-shadow:0 0 6px var(--a4);animation:blink 2s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.25}}
+.hdr-btn{
+  background:var(--s3);border:1px solid var(--border);
+  color:var(--dim2);padding:5px 11px;border-radius:8px;
+  font-size:10px;font-family:'JetBrains Mono',monospace;cursor:pointer;transition:all .2s;
+}
+.hdr-btn:hover{color:var(--a2);border-color:var(--a2);}
+
+/* ══════════════════════════════
+   LAYOUT
+══════════════════════════════ */
+.layout{flex:1;display:flex;overflow:hidden;}
+
+/* ══════════════════════════════
+   SIDEBAR
+══════════════════════════════ */
+.sidebar{
+  width:210px;background:var(--s1);border-right:1px solid var(--border);
+  flex-shrink:0;overflow-y:auto;padding:12px 8px;
+  display:flex;flex-direction:column;gap:4px;
+}
+@media(max-width:600px){.sidebar{display:none;}}
+.sb-label{
+  font-size:9px;font-family:'JetBrains Mono',monospace;
+  color:var(--dim);text-transform:uppercase;letter-spacing:1.8px;
+  padding:8px 8px 4px;
+}
+.sb-btn{
+  width:100%;background:transparent;border:none;color:var(--text);
+  padding:8px 9px;border-radius:9px;font-size:12px;
+  font-family:'Noto Sans Devanagari',sans-serif;
+  cursor:pointer;text-align:left;display:flex;align-items:flex-start;gap:8px;
+  transition:all .18s;line-height:1.35;
+}
+.sb-btn .ic{font-size:13px;flex-shrink:0;margin-top:1px;}
+.sb-btn:hover{background:var(--s3);color:var(--a1);}
+.sb-div{height:1px;background:var(--border);margin:4px 0;}
+
+/* ══════════════════════════════
+   CHAT
+══════════════════════════════ */
+.chat-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.messages{
+  flex:1;overflow-y:auto;padding:20px 18px 10px;
+  display:flex;flex-direction:column;gap:18px;
+  scroll-behavior:smooth;
+}
+
+/* ══════════════════════════════
+   WELCOME
+══════════════════════════════ */
+.welcome{
+  display:flex;flex-direction:column;align-items:center;
+  text-align:center;padding:24px 16px;
+  animation:fadeUp .6s ease both;
+}
+.welcome-orb{
+  width:68px;height:68px;border-radius:20px;
+  background:conic-gradient(from 180deg,var(--a1),#0055ff,var(--a2),var(--a3),var(--a1));
+  display:flex;align-items:center;justify-content:center;font-size:30px;
+  margin-bottom:16px;
+  box-shadow:0 0 40px rgba(0,198,255,0.25),0 0 80px rgba(0,198,255,0.08);
+  animation:orb-rotate 6s linear infinite;
+}
+@keyframes orb-rotate{0%{filter:hue-rotate(0deg)}100%{filter:hue-rotate(360deg)}}
+.welcome h2{
+  font-size:22px;font-weight:800;margin-bottom:8px;
+  background:linear-gradient(135deg,var(--a1),#4488ff,var(--a2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.welcome>p{
+  font-size:12.5px;color:var(--dim2);max-width:360px;line-height:1.7;
+  margin-bottom:20px;font-family:'Noto Sans Devanagari',sans-serif;
+}
+.cap-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:8px;
+  width:100%;max-width:380px;margin-bottom:18px;
+}
+.cap{
+  background:var(--s2);border:1px solid var(--border);
+  border-radius:12px;padding:12px 10px;text-align:left;
+  cursor:pointer;transition:all .2s;
+}
+.cap:hover{border-color:var(--a1);background:var(--s3);}
+.cap .ci{font-size:18px;margin-bottom:5px;display:block;}
+.cap .ct{font-size:11px;font-weight:700;color:var(--text);display:block;margin-bottom:2px;}
+.cap .cs{font-size:10px;color:var(--dim2);font-family:'Noto Sans Devanagari',sans-serif;line-height:1.4;}
+.qps{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;}
+.qp{
+  background:var(--s2);border:1px solid var(--border);
+  color:var(--text);padding:7px 13px;border-radius:20px;
+  font-size:11px;font-family:'Noto Sans Devanagari',sans-serif;
+  cursor:pointer;transition:all .2s;
+}
+.qp:hover{border-color:var(--a1);color:var(--a1);background:var(--s3);}
+
+/* ══════════════════════════════
+   MESSAGES
+══════════════════════════════ */
+.msg{display:flex;gap:10px;animation:fadeUp .3s ease both;max-width:100%;}
+.msg.user{flex-direction:row-reverse;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.av{
+  width:32px;height:32px;border-radius:9px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;flex-shrink:0;margin-top:2px;
+}
+.av.ai-av{
+  background:linear-gradient(135deg,var(--a1),#0055ff);
+  box-shadow:0 0 12px rgba(0,198,255,0.25);
+  font-weight:800;color:#06070c;font-family:'Syne',sans-serif;font-size:11px;
+}
+.av.u-av{background:var(--s3);border:1px solid var(--border);}
+.msg-body{max-width:calc(100% - 44px);display:flex;flex-direction:column;gap:3px;}
+.msg-name{font-size:9px;color:var(--dim);font-family:'JetBrains Mono',monospace;padding:0 3px;}
+.msg.user .msg-name{text-align:right;}
+.bubble{
+  padding:12px 15px;border-radius:13px;font-size:13.5px;
+  line-height:1.7;word-break:break-word;
+  font-family:'Noto Sans Devanagari',sans-serif;
+}
+.msg.ai .bubble{
+  background:var(--s2);border:1px solid var(--border);
+  border-top-left-radius:3px;
+}
+.msg.user .bubble{
+  background:linear-gradient(135deg,rgba(0,85,255,0.14),rgba(0,198,255,0.07));
+  border:1px solid rgba(0,198,255,0.18);border-top-right-radius:3px;
+}
+
+/* Uploaded image in bubble */
+.uploaded-img{
+  max-width:240px;max-height:180px;border-radius:10px;
+  border:1px solid var(--border2);margin-bottom:8px;display:block;
+  object-fit:cover;
+}
+.uploaded-file-chip{
+  display:inline-flex;align-items:center;gap:7px;
+  background:var(--s3);border:1px solid var(--border2);
+  border-radius:8px;padding:7px 12px;margin-bottom:8px;
+  font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--dim2);
+}
+.uploaded-file-chip .ficon{font-size:16px;}
+
+/* ══════════════════════════════
+   CODE BLOCKS
+══════════════════════════════ */
+.code-wrap{
+  background:#080b12;border:1px solid var(--border2);
+  border-radius:11px;overflow:hidden;margin:10px 0;
+}
+.code-top{
+  background:var(--s3);border-bottom:1px solid var(--border);
+  padding:7px 13px;display:flex;align-items:center;justify-content:space-between;
+  gap:8px;
+}
+.code-lang{
+  font-family:'JetBrains Mono',monospace;font-size:10px;
+  color:var(--a1);text-transform:uppercase;letter-spacing:1px;
+}
+.code-actions{display:flex;gap:6px;}
+.code-act-btn{
+  background:transparent;border:1px solid var(--border2);
+  color:var(--dim2);padding:3px 9px;border-radius:6px;
+  font-family:'JetBrains Mono',monospace;font-size:9px;cursor:pointer;transition:all .2s;
+}
+.code-act-btn:hover{color:var(--a1);border-color:var(--a1);}
+.code-body{
+  padding:14px 16px;overflow-x:auto;
+  font-family:'JetBrains Mono',monospace;font-size:12px;
+  color:#cdd6f4;line-height:1.65;white-space:pre;
+}
+.preview-launch{
+  display:inline-flex;align-items:center;gap:7px;
+  background:linear-gradient(135deg,var(--a1),#0055ff);
+  border:none;border-radius:9px;color:#06070c;
+  font-family:'Syne',sans-serif;font-size:12px;font-weight:700;
+  padding:9px 18px;cursor:pointer;margin-top:8px;
+  box-shadow:0 4px 16px rgba(0,198,255,0.22);
+  transition:all .2s;
+}
+.preview-launch:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,198,255,0.32);}
+
+/* ══════════════════════════════
+   TYPING
+══════════════════════════════ */
+.typing{display:flex;gap:5px;align-items:center;padding:4px 0;}
+.typing span{
+  width:7px;height:7px;border-radius:50%;background:var(--a1);
+  animation:tdot 1.2s infinite;
+}
+.typing span:nth-child(2){animation-delay:.2s;background:#4488ff;}
+.typing span:nth-child(3){animation-delay:.4s;background:var(--a2);}
+@keyframes tdot{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-7px)}}
+
+/* ══════════════════════════════
+   INPUT AREA
+══════════════════════════════ */
+.input-area{
+  background:var(--s1);border-top:1px solid var(--border);
+  padding:12px 16px;flex-shrink:0;
+}
+
+/* Attachments preview row */
+.attach-row{
+  display:flex;gap:8px;flex-wrap:wrap;
+  margin-bottom:10px;padding:0 2px;
+  display:none;
+}
+.attach-row.has-items{display:flex;}
+.attach-thumb{
+  position:relative;width:52px;height:52px;
+  border-radius:10px;overflow:hidden;
+  border:1px solid var(--border2);flex-shrink:0;
+}
+.attach-thumb img{width:100%;height:100%;object-fit:cover;}
+.attach-thumb .rm-attach{
+  position:absolute;top:2px;right:2px;width:16px;height:16px;
+  background:rgba(0,0,0,0.75);border:none;border-radius:50%;
+  color:white;font-size:9px;cursor:pointer;display:flex;
+  align-items:center;justify-content:center;line-height:1;
+}
+.attach-file{
+  display:flex;align-items:center;gap:6px;
+  background:var(--s3);border:1px solid var(--border2);
+  border-radius:10px;padding:6px 10px;position:relative;
+  font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--dim2);
+  max-width:140px;
+}
+.attach-file .fic{font-size:16px;}
+.attach-file .fn{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;}
+.attach-file .rm-attach{
+  position:absolute;top:-4px;right:-4px;width:16px;height:16px;
+  background:var(--a2);border:none;border-radius:50%;
+  color:white;font-size:9px;cursor:pointer;display:flex;
+  align-items:center;justify-content:center;
+}
+
+/* Input box */
+.in-box{
+  background:var(--s2);border:1px solid var(--border);
+  border-radius:14px;padding:10px 12px;
+  display:flex;align-items:flex-end;gap:8px;
+  transition:border-color .2s,box-shadow .2s;
+}
+.in-box:focus-within{border-color:var(--a1);box-shadow:0 0 0 2px var(--glow);}
+textarea#inp{
+  flex:1;background:transparent;border:none;outline:none;
+  color:var(--text);font-family:'Noto Sans Devanagari',sans-serif;
+  font-size:13.5px;resize:none;max-height:120px;line-height:1.6;
+}
+textarea#inp::placeholder{color:var(--dim);}
+
+/* Input action buttons */
+.in-actions{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.ia-btn{
+  width:34px;height:34px;border-radius:9px;border:1px solid var(--border2);
+  background:var(--s3);color:var(--dim2);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-size:16px;
+  transition:all .2s;flex-shrink:0;
+  position:relative;
+}
+.ia-btn:hover{color:var(--a1);border-color:var(--a1);background:var(--s4);}
+.ia-btn.active-mic{
+  background:rgba(255,95,109,0.12);border-color:var(--a2);
+  color:var(--a2);animation:mic-pulse 1s infinite;
+}
+@keyframes mic-pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,95,109,0.35)}50%{box-shadow:0 0 0 6px rgba(255,95,109,0)}}
+.send-btn{
+  width:36px;height:36px;border-radius:10px;border:none;
+  background:linear-gradient(135deg,var(--a1),#0055ff);
+  color:#06070c;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 14px rgba(0,198,255,0.22);transition:all .2s;flex-shrink:0;
+}
+.send-btn:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 6px 20px rgba(0,198,255,0.32);}
+.send-btn:disabled{opacity:.3;cursor:not-allowed;transform:none;}
+
+.meta-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:7px 2px 0;
+}
+.meta-l{display:flex;gap:12px;align-items:center;}
+.meta-tip{font-size:9.5px;color:var(--dim);font-family:'JetBrains Mono',monospace;}
+.voice-status{
+  font-size:10px;color:var(--a2);font-family:'JetBrains Mono',monospace;
+  display:none;animation:fadeUp .2s ease;
+}
+.voice-status.show{display:block;}
+.char-c{font-size:9.5px;color:var(--dim);font-family:'JetBrains Mono',monospace;}
+
+/* Hidden file inputs */
+#imgInput,#fileInput{display:none;}
+
+/* ══════════════════════════════
+   PREVIEW PANEL
+══════════════════════════════ */
+.preview-panel{
+  position:fixed;inset:0;background:rgba(6,7,12,0.94);
+  backdrop-filter:blur(12px);z-index:100;
+  display:flex;flex-direction:column;
+  animation:fadeIn .25s ease;
+}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.prev-hdr{
+  background:var(--s1);border-bottom:1px solid var(--border);
+  padding:11px 18px;display:flex;align-items:center;gap:12px;flex-shrink:0;
+}
+.prev-hdr h3{font-size:13px;font-weight:700;flex:1;}
+.prev-url{
+  flex:1;max-width:360px;background:var(--s2);
+  border:1px solid var(--border);border-radius:8px;
+  padding:6px 12px;display:flex;align-items:center;gap:6px;
+  font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim2);
+}
+.prev-close{
+  background:var(--s3);border:1px solid var(--border);
+  color:var(--text);padding:6px 13px;border-radius:8px;
+  font-size:11px;font-family:'Syne',sans-serif;font-weight:700;cursor:pointer;
+  transition:all .2s;
+}
+.prev-close:hover{color:var(--a2);border-color:var(--a2);}
+.prev-frame{flex:1;border:none;background:white;}
+
+/* ══════════════════════════════
+   TOAST
+══════════════════════════════ */
+.toast{
+  position:fixed;bottom:80px;left:50%;transform:translateX(-50%);
+  background:var(--s3);border:1px solid var(--border2);
+  color:var(--text);padding:8px 18px;border-radius:22px;
+  font-size:11px;font-family:'JetBrains Mono',monospace;
+  z-index:200;opacity:0;transition:opacity .25s;pointer-events:none;
+  white-space:nowrap;
+}
+.toast.show{opacity:1;}
+
+/* ══════════════════════════════
+   ERROR
+══════════════════════════════ */
+.err-bubble{
+  background:rgba(255,95,109,0.08);border:1px solid rgba(255,95,109,0.22);
+  color:#ffaaaa;padding:10px 14px;border-radius:10px;font-size:13px;
+  font-family:'Noto Sans Devanagari',sans-serif;
+}
+
+/* ══════════════════════════════
+   VOICE MODAL (visual feedback)
+══════════════════════════════ */
+.voice-modal{
+  position:fixed;inset:0;background:rgba(6,7,12,0.85);backdrop-filter:blur(8px);
+  z-index:150;display:flex;align-items:center;justify-content:center;
+  flex-direction:column;gap:20px;
+  animation:fadeIn .2s ease;
+}
+.voice-ripple{
+  width:90px;height:90px;border-radius:50%;
+  background:rgba(255,95,109,0.12);border:2px solid var(--a2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:36px;
+  animation:ripple 1.2s ease-in-out infinite;
+}
+@keyframes ripple{
+  0%,100%{box-shadow:0 0 0 0 rgba(255,95,109,.4),0 0 0 0 rgba(255,95,109,.2)}
+  50%{box-shadow:0 0 0 20px rgba(255,95,109,0),0 0 0 40px rgba(255,95,109,0)}
+}
+.voice-modal p{font-size:14px;color:var(--a2);font-family:'JetBrains Mono',monospace;}
+.voice-modal small{font-size:11px;color:var(--dim2);}
+.stop-voice-btn{
+  background:var(--a2);border:none;border-radius:10px;
+  color:#06070c;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;
+  padding:10px 22px;cursor:pointer;transition:all .2s;
+}
+.stop-voice-btn:hover{opacity:.85;}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-logo">VA</div>
+  <div class="hdr-title">
+    <h1>Vikko AI — Full Assistant</h1>
+    <p>Voice · Image · File · Code · Preview · हिंदी + English</p>
+  </div>
+  <div class="hdr-right">
+    <div class="badge"><div class="badge-dot"></div>Online</div>
+    <button class="hdr-btn" onclick="clearAll()">🗑 Clear</button>
+  </div>
+</div>
+
+<!-- LAYOUT -->
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sb-label">🚀 Quick Start</div>
+    <button class="sb-btn" onclick="qs('Ek professional website homepage banao — dark theme, animated hero section, Hindi aur English content')"><span class="ic">🌐</span>Homepage banao</button>
+    <button class="sb-btn" onclick="qs('Responsive landing page banao PaisaTrack ke liye — budget tracker website')"><span class="ic">💰</span>PaisaTrack page</button>
+    <button class="sb-btn" onclick="qs('Ek dark theme portfolio website banao — about, skills, projects, contact sections')"><span class="ic">🎨</span>Portfolio Site</button>
+    <button class="sb-btn" onclick="qs('Beautiful pricing cards banao — 3 plans, hover effects, gradient buttons')"><span class="ic">💳</span>Pricing Cards</button>
+    <button class="sb-btn" onclick="qs('Animated navigation bar banao — logo, links, hamburger menu, glassmorphism style')"><span class="ic">📌</span>Navbar banao</button>
+
+    <div class="sb-div"></div>
+    <div class="sb-label">🔧 Components</div>
+    <button class="sb-btn" onclick="qs('CSS card components banao with hover animations — 4 different styles')"><span class="ic">📦</span>Card Components</button>
+    <button class="sb-btn" onclick="qs('Stylish contact form banao — validation ke saath, animated labels')"><span class="ic">📬</span>Contact Form</button>
+    <button class="sb-btn" onclick="qs('Dashboard UI banao — stats cards, charts placeholder, sidebar')"><span class="ic">📊</span>Dashboard UI</button>
+    <button class="sb-btn" onclick="qs('Loading animations aur micro-interactions banao — 5 different CSS animations')"><span class="ic">✨</span>Animations</button>
+
+    <div class="sb-div"></div>
+    <div class="sb-label">📚 Seekho</div>
+    <button class="sb-btn" onclick="qs('CSS Flexbox aur Grid ka fark Hindi mein samjhao with live examples')"><span class="ic">🧩</span>Flexbox vs Grid</button>
+    <button class="sb-btn" onclick="qs('JavaScript functions kya hoti hain — Hindi mein simple example ke saath')"><span class="ic">⚡</span>JS Functions</button>
+    <button class="sb-btn" onclick="qs('SEO ke liye HTML meta tags kaise likhein — title, description, OG tags')"><span class="ic">🔍</span>SEO Meta Tags</button>
+
+    <div class="sb-div"></div>
+    <div class="sb-label">🖼 Image & File</div>
+    <button class="sb-btn" onclick="document.getElementById('imgInput').click()"><span class="ic">📸</span>Photo Upload karo</button>
+    <button class="sb-btn" onclick="document.getElementById('fileInput').click()"><span class="ic">📁</span>File Upload karo</button>
+  </div>
+
+  <!-- CHAT WRAP -->
+  <div class="chat-wrap">
+    <div class="messages" id="msgs">
+      <div class="welcome" id="welcome">
+        <div class="welcome-orb">⚡</div>
+        <h2>Vikko AI — Aapka Personal Assistant</h2>
+        <p>Voice se bolo, photo upload karo, file bhejo — sab samajhta hoon.<br>Code likhta hoon, website banata hoon, Hindi mein explain karta hoon.</p>
+        <div class="cap-grid">
+          <div class="cap" onclick="qs('Website ka HTML CSS JS code likho')">
+            <span class="ci">💻</span>
+            <span class="ct">Code Likhna</span>
+            <span class="cs">HTML, CSS, JS complete code</span>
+          </div>
+          <div class="cap" onclick="document.getElementById('imgInput').click()">
+            <span class="ci">📸</span>
+            <span class="ct">Photo Upload</span>
+            <span class="cs">Image dekhke jawab dunga</span>
+          </div>
+          <div class="cap" onclick="startVoice()">
+            <span class="ci">🎤</span>
+            <span class="ct">Voice Input</span>
+            <span class="cs">Mic se bolo — type mat karo</span>
+          </div>
+          <div class="cap" onclick="document.getElementById('fileInput').click()">
+            <span class="ci">📁</span>
+            <span class="ct">File Upload</span>
+            <span class="cs">PDF, code, text — sab bhejo</span>
+          </div>
+        </div>
+        <div class="qps">
+          <button class="qp" onclick="qs('Ek modern homepage banao')">🌐 Homepage</button>
+          <button class="qp" onclick="qs('Dark portfolio banao')">🎨 Portfolio</button>
+          <button class="qp" onclick="qs('Budget tracker UI banao')">💰 Budget UI</button>
+          <button class="qp" onclick="qs('CSS animations dikhao')">✨ Animations</button>
+          <button class="qp" onclick="qs('Mera code fix karo')">🔧 Fix Code</button>
+          <button class="qp" onclick="startVoice()">🎤 Voice Mode</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- INPUT AREA -->
+    <div class="input-area">
+      <!-- Attachment previews -->
+      <div class="attach-row" id="attachRow"></div>
+
+      <div class="in-box">
+        <textarea id="inp" placeholder="Kuch bhi poochho — ya mic 🎤 dabao, ya photo 📸 bhejo..." rows="1"
+          onkeydown="handleKey(event)" oninput="onInput(this)"></textarea>
+        <div class="in-actions">
+          <!-- Voice -->
+          <button class="ia-btn" id="micBtn" onclick="startVoice()" title="Voice input">🎤</button>
+          <!-- Image upload -->
+          <button class="ia-btn" onclick="document.getElementById('imgInput').click()" title="Photo upload">📸</button>
+          <!-- File upload -->
+          <button class="ia-btn" onclick="document.getElementById('fileInput').click()" title="File upload">📁</button>
+          <!-- Send -->
+          <button class="send-btn" id="sendBtn" onclick="sendMsg()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="meta-row">
+        <div class="meta-l">
+          <span class="meta-tip">↵ Send · Shift+↵ New line</span>
+          <span class="voice-status" id="voiceStatus">🔴 Recording...</span>
+        </div>
+        <span class="char-c" id="charC">0</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Hidden inputs -->
+<input type="file" id="imgInput" accept="image/*" onchange="handleImgUpload(event)">
+<input type="file" id="fileInput" accept=".txt,.html,.css,.js,.json,.md,.pdf,.csv" onchange="handleFileUpload(event)">
+
+<!-- Preview Panel -->
+<div class="preview-panel" id="prevPanel" style="display:none;">
+  <div class="prev-hdr">
+    <h3>👁️ Live Website Preview</h3>
+    <div class="prev-url">🔗 vikko-ai://preview</div>
+    <button class="prev-close" onclick="closePrev()">✕ Close</button>
+  </div>
+  <iframe class="prev-frame" id="prevFrame"></iframe>
+</div>
+
+<!-- Voice Modal -->
+<div class="voice-modal" id="voiceModal" style="display:none;">
+  <div class="voice-ripple">🎤</div>
+  <p>Sun raha hoon...</p>
+  <small>Clearly boliye — Hindi ya English</small>
+  <button class="stop-voice-btn" onclick="stopVoice()">⏹ Rok do</button>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── State ──
+let history = [];
+let pendingImages = []; // {base64, mediaType, name}
+let pendingFiles = [];  // {text, name}
+let recognition = null;
+let isRecording = false;
+
+// ── Helpers ──
+function onInput(el){
+  el.style.height='auto';
+  el.style.height=Math.min(el.scrollHeight,120)+'px';
+  document.getElementById('charC').textContent=el.value.length;
+}
+function handleKey(e){
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();}
+}
+function qs(t){document.getElementById('inp').value=t;onInput(document.getElementById('inp'));sendMsg();}
+function showToast(m,d=2000){
+  const t=document.getElementById('toast');
+  t.textContent=m;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),d);
+}
+function rmWelcome(){const w=document.getElementById('welcome');if(w)w.remove();}
+function scrollBottom(){
+  const m=document.getElementById('msgs');
+  m.scrollTop=m.scrollHeight;
+}
+function clearAll(){
+  history=[];pendingImages=[];pendingFiles=[];
+  document.getElementById('msgs').innerHTML='';
+  document.getElementById('attachRow').innerHTML='';
+  document.getElementById('attachRow').className='attach-row';
+  const w=document.createElement('div');w.className='welcome';w.id='welcome';
+  w.innerHTML='<div class="welcome-orb">⚡</div><h2>Chat clear ho gaya!</h2><p style="font-family:\'Noto Sans Devanagari\',sans-serif;font-size:13px;color:var(--dim2)">Naya conversation shuru karo — kuch bhi poochho!</p>';
+  document.getElementById('msgs').appendChild(w);
+  showToast('✓ Cleared');
+}
+
+// ── Image Upload ──
+function handleImgUpload(e){
+  const files=Array.from(e.target.files);
+  files.forEach(f=>{
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      const b64=ev.target.result.split(',')[1];
+      const mt=f.type||'image/jpeg';
+      pendingImages.push({base64:b64,mediaType:mt,name:f.name,dataUrl:ev.target.result});
+      addAttachThumb(ev.target.result,f.name,'img',pendingImages.length-1);
+    };
+    reader.readAsDataURL(f);
+  });
+  e.target.value='';
+  showToast('📸 Photo ready! Ab poochho');
+}
+
+// ── File Upload ──
+function handleFileUpload(e){
+  const files=Array.from(e.target.files);
+  files.forEach(f=>{
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      pendingFiles.push({text:ev.target.result,name:f.name});
+      addAttachThumb(null,f.name,'file',pendingFiles.length-1);
+    };
+    reader.readAsText(f);
+  });
+  e.target.value='';
+  showToast('📁 File ready! Ab poochho');
+}
+
+function addAttachThumb(dataUrl,name,type,idx){
+  const row=document.getElementById('attachRow');
+  row.classList.add('has-items');
+  const div=document.createElement('div');
+  if(type==='img'){
+    div.className='attach-thumb';
+    div.innerHTML=`<img src="${dataUrl}" alt="${name}"><button class="rm-attach" onclick="removeAttach('img',${idx},this.parentElement)">✕</button>`;
+  } else {
+    div.className='attach-file';
+    const icons={'html':'🌐','css':'🎨','js':'⚡','json':'{}','txt':'📄','pdf':'📋','md':'📝','csv':'📊'};
+    const ext=name.split('.').pop().toLowerCase();
+    const ic=icons[ext]||'📁';
+    div.innerHTML=`<span class="fic">${ic}</span><span class="fn">${name}</span><button class="rm-attach" onclick="removeAttach('file',${idx},this.parentElement)">✕</button>`;
+  }
+  row.appendChild(div);
+}
+
+function removeAttach(type,idx,el){
+  if(type==='img') pendingImages.splice(idx,1);
+  else pendingFiles.splice(idx,1);
+  el.remove();
+  if(document.getElementById('attachRow').children.length===0){
+    document.getElementById('attachRow').classList.remove('has-items');
+  }
+}
+
+// ── Voice Input ──
+function startVoice(){
+  if(!('webkitSpeechRecognition' in window||'SpeechRecognition' in window)){
+    showToast('⚠️ Voice: Chrome browser use karein',3000);
+    return;
+  }
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  recognition=new SR();
+  recognition.lang='hi-IN';
+  recognition.interimResults=true;
+  recognition.continuous=false;
+
+  recognition.onstart=()=>{
+    isRecording=true;
+    document.getElementById('voiceModal').style.display='flex';
+    document.getElementById('micBtn').classList.add('active-mic');
+    document.getElementById('voiceStatus').classList.add('show');
+  };
+
+  recognition.onresult=e=>{
+    let interim='',final='';
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      if(e.results[i].isFinal) final+=e.results[i][0].transcript;
+      else interim+=e.results[i][0].transcript;
+    }
+    document.getElementById('inp').value=(final||interim);
+    onInput(document.getElementById('inp'));
+  };
+
+  recognition.onend=()=>{
+    isRecording=false;
+    document.getElementById('voiceModal').style.display='none';
+    document.getElementById('micBtn').classList.remove('active-mic');
+    document.getElementById('voiceStatus').classList.remove('show');
+    const txt=document.getElementById('inp').value.trim();
+    if(txt) sendMsg();
+  };
+
+  recognition.onerror=err=>{
+    stopVoice();
+    showToast('⚠️ Voice error: '+err.error,3000);
+  };
+
+  recognition.start();
+}
+
+function stopVoice(){
+  if(recognition) recognition.stop();
+  isRecording=false;
+  document.getElementById('voiceModal').style.display='none';
+  document.getElementById('micBtn').classList.remove('active-mic');
+  document.getElementById('voiceStatus').classList.remove('show');
+}
+
+// ── Append Message ──
+function appendMsg(role,html,isHTML=false){
+  rmWelcome();
+  const div=document.createElement('div');div.className=`msg ${role}`;
+  const av=document.createElement('div');av.className=`av ${role==='ai'?'ai-av':'u-av'}`;
+  av.textContent=role==='ai'?'VA':'😊';
+  const body=document.createElement('div');body.className='msg-body';
+  const name=document.createElement('div');name.className='msg-name';
+  name.textContent=role==='ai'?'Vikko AI':'You';
+  const bubble=document.createElement('div');bubble.className='bubble';
+  if(isHTML) bubble.innerHTML=html;
+  else bubble.textContent=html;
+  body.appendChild(name);body.appendChild(bubble);
+  div.appendChild(av);div.appendChild(body);
+  document.getElementById('msgs').appendChild(div);
+  scrollBottom();
+  return bubble;
+}
+
+function appendTyping(){
+  rmWelcome();
+  const div=document.createElement('div');div.className='msg ai';div.id='typingEl';
+  const av=document.createElement('div');av.className='av ai-av';av.textContent='VA';
+  const body=document.createElement('div');body.className='msg-body';
+  const name=document.createElement('div');name.className='msg-name';name.textContent='Vikko AI';
+  const bubble=document.createElement('div');bubble.className='bubble';
+  bubble.innerHTML='<div class="typing"><span></span><span></span><span></span></div>';
+  body.appendChild(name);body.appendChild(bubble);
+  div.appendChild(av);div.appendChild(body);
+  document.getElementById('msgs').appendChild(div);
+  scrollBottom();
+}
+
+// ── Render AI Response ──
+function renderResponse(bubble, text){
+  bubble.innerHTML='';
+  const parts=text.split(/(```[\w]*\n[\s\S]*?```)/g);
+  parts.forEach(part=>{
+    const cm=part.match(/```([\w]*)\n([\s\S]*?)```/);
+    if(cm){
+      const lang=cm[1]||'html';
+      const code=cm[2].trim();
+      const wrap=document.createElement('div');wrap.className='code-wrap';
+      const top=document.createElement('div');top.className='code-top';
+      top.innerHTML=`<span class="code-lang">${lang}</span>
+        <div class="code-actions">
+          <button class="code-act-btn" onclick="copyCode(this)">📋 Copy</button>
+          ${(lang==='html'||lang==='') ? '<button class="code-act-btn" onclick="previewCode(this)">👁 Preview</button>' : ''}
+        </div>`;
+      const body=document.createElement('div');body.className='code-body';
+      body.textContent=code;body.dataset.code=code;
+      wrap.appendChild(top);wrap.appendChild(body);
+      bubble.appendChild(wrap);
+      if(lang==='html'||lang===''){
+        const pb=document.createElement('button');
+        pb.className='preview-launch';
+        pb.innerHTML='👁️ Website Preview Dekho';
+        pb.onclick=()=>openPrev(code);
+        bubble.appendChild(pb);
+      }
+    } else if(part.trim()){
+      const d=document.createElement('div');
+      d.style.cssText='white-space:pre-wrap;margin-bottom:6px;';
+      d.textContent=part.trim();
+      bubble.appendChild(d);
+    }
+  });
+}
+
+function copyCode(btn){
+  const code=btn.closest('.code-wrap').querySelector('.code-body').dataset.code;
+  navigator.clipboard.writeText(code).then(()=>{
+    btn.textContent='✓ Copied!';
+    setTimeout(()=>btn.textContent='📋 Copy',2000);
+    showToast('✓ Code copied!');
+  });
+}
+function previewCode(btn){
+  const code=btn.closest('.code-wrap').querySelector('.code-body').dataset.code;
+  openPrev(code);
+}
+function openPrev(html){
+  document.getElementById('prevPanel').style.display='flex';
+  document.getElementById('prevFrame').srcdoc=html;
+}
+function closePrev(){document.getElementById('prevPanel').style.display='none';}
+
+// ── Build message content for API ──
+function buildUserContent(text){
+  // Images + files + text
+  const content=[];
+  // Add pending images
+  pendingImages.forEach(img=>{
+    content.push({type:'image',source:{type:'base64',media_type:img.mediaType,data:img.base64}});
+  });
+  // Add pending files as text
+  pendingFiles.forEach(f=>{
+    content.push({type:'text',text:`[File: ${f.name}]\n${f.text}`});
+  });
+  // Add user text
+  if(text) content.push({type:'text',text});
+  // If only text, return as string for simplicity
+  if(content.length===1&&content[0].type==='text') return text;
+  return content;
+}
+
+function buildAttachHTML(text){
+  let html='';
+  pendingImages.forEach(img=>{
+    html+=`<img class="uploaded-img" src="data:${img.mediaType};base64,${img.base64}" alt="${img.name}">`;
+  });
+  pendingFiles.forEach(f=>{
+    const icons={'html':'🌐','css':'🎨','js':'⚡','json':'{}','txt':'📄','pdf':'📋','md':'📝','csv':'📊'};
+    const ext=f.name.split('.').pop().toLowerCase();
+    const ic=icons[ext]||'📁';
+    html+=`<div class="uploaded-file-chip"><span class="ficon">${ic}</span>${f.name}</div>`;
+  });
+  if(text) html+=`<div style="white-space:pre-wrap">${text}</div>`;
+  return html;
+}
+
+// ── Send Message ──
+async function sendMsg(){
+  const inp=document.getElementById('inp');
+  const text=inp.value.trim();
+  const hasAttach=pendingImages.length>0||pendingFiles.length>0;
+  if(!text&&!hasAttach) return;
+  if(document.getElementById('sendBtn').disabled) return;
+
+  // Build display
+  const displayHTML=buildAttachHTML(text);
+  // Build API content
+  const apiContent=buildUserContent(text);
+
+  // Clear input + attachments
+  inp.value='';inp.style.height='auto';
+  document.getElementById('charC').textContent='0';
+  document.getElementById('attachRow').innerHTML='';
+  document.getElementById('attachRow').className='attach-row';
+  const capturedImages=[...pendingImages];
+  const capturedFiles=[...pendingFiles];
+  pendingImages=[];pendingFiles=[];
+
+  document.getElementById('sendBtn').disabled=true;
+
+  // Show user bubble
+  appendMsg('user',displayHTML,true);
+  history.push({role:'user',content:apiContent});
+
+  appendTyping();
+
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:4000,
+        system:`Aap Vikko AI hain — ek expert full-stack coding assistant aur personal helper.
+
+CAPABILITIES:
+1. HTML/CSS/JS code likhna — complete, beautiful, working pages
+2. Uploaded images analyze karna — screenshot dekhke code banana, design samajhna
+3. Uploaded files read karna — code review, bug fixing, explanation
+4. Voice queries handle karna — jo bola wahi samajhna
+5. Hindi/Hinglish/English — teeno mein baat karna
+
+CODE RULES:
+- Hamesha COMPLETE code do — DOCTYPE se </html> tak
+- Code blocks use karo: \`\`\`html ... \`\`\`
+- Professional, responsive, beautiful code do
+- Google Fonts use karo, CSS variables, animations
+- Comments dalo — Hindi ya English mein
+- Mobile-first approach
+
+TONE:
+- User ki language match karo
+- Encouraging aur friendly raho
+- Technical terms English mein rakh sakte ho
+- Concise but complete answers do
+
+CONTEXT: Vikko ek Indian developer hai jo PaisaTrack (personal finance website) bana raha hai. Hindi-speaking Indian users ke liye content banata hai.`,
+        messages:history
+      })
+    });
+
+    const data=await res.json();
+    document.getElementById('typingEl')?.remove();
+
+    if(data.content&&data.content[0]){
+      const replyText=data.content.map(b=>b.text||'').join('');
+      const bubble=appendMsg('ai','',true);
+      renderResponse(bubble,replyText);
+      history.push({role:'assistant',content:replyText});
+    } else {
+      const b=appendMsg('ai','',true);
+      b.innerHTML='<div class="err-bubble">⚠️ Kuch galat hua. Dobara try karein.</div>';
+    }
+  }catch(err){
+    document.getElementById('typingEl')?.remove();
+    const b=appendMsg('ai','',true);
+    b.innerHTML='<div class="err-bubble">⚠️ Network error — connection check karein.</div>';
+  }
+
+  document.getElementById('sendBtn').disabled=false;
+  scrollBottom();
+  inp.focus();
+}
+</script>
+</body>
+</html>
