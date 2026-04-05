@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Budget Set Karo – PaisaTrack</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:     #07091a;
+  --card:   #0f1225;
+  --surf:   #131829;
+  --dim:    #1e2338;
+  --dim2:   #252b42;
+  --border: rgba(250,204,21,0.13);
+  --gold:   #facc15;
+  --gold2:  #f59e0b;
+  --red:    #f87171;
+  --green:  #4ade80;
+  --blue:   #60a5fa;
+  --purple: #a78bfa;
+  --orange: #fb923c;
+  --pink:   #f472b6;
+  --cyan:   #22d3ee;
+  --sub:    #7a84a0;
+  --muted:  #3d4460;
+  --text:   #e8edf8;
+  --fh:     'Sora', sans-serif;
+  --fb:     'DM Sans', sans-serif;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  background-image:
+    radial-gradient(ellipse 80% 30% at 50% 0%, rgba(250,204,21,0.07) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 40% at 90% 90%, rgba(96,165,250,0.04) 0%, transparent 60%);
+  font-family: var(--fb);
+  color: var(--text);
+  min-height: 100vh;
+  padding: 0 0 50px;
+}
+
+.wrap { max-width: 460px; margin: 0 auto; padding: 20px 14px; }
+
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 22px; animation: fadeDown 0.4s ease both;
+}
+.topbar-left { display: flex; align-items: center; gap: 10px; }
+.topbar-icon {
+  width: 36px; height: 36px;
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px; box-shadow: 0 3px 14px rgba(250,204,21,0.35); flex-shrink: 0;
+}
+.topbar-title { font-family: var(--fh); font-size: 17px; font-weight: 800; color: #fff; }
+.topbar-sub { font-size: 10px; color: var(--muted); letter-spacing: 0.07em; margin-top: 1px; }
+.total-badge { background: var(--surf); border: 1px solid var(--dim2); border-radius: 10px; padding: 6px 12px; text-align: right; }
+.total-badge .tb-label { font-size: 9px; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; }
+.total-badge .tb-val { font-family: var(--fh); font-size: 15px; font-weight: 700; color: var(--gold); }
+
+.card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 20px; padding: 18px 16px; margin-bottom: 14px;
+  box-shadow: 0 8px 36px rgba(0,0,0,0.4);
+}
+.card-head { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+.card-head-icon {
+  width: 28px; height: 28px;
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  border-radius: 8px; display: flex; align-items: center; justify-content: center;
+  font-size: 13px; flex-shrink: 0;
+}
+.card-head-title { font-family: var(--fh); font-size: 14px; font-weight: 700; color: #fff; }
+
+.flabel { font-size: 10px; font-weight: 600; color: var(--sub); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 6px; }
+.frow { display: flex; gap: 10px; margin-bottom: 12px; }
+.frow .fcol { flex: 1; }
+
+select, input[type=number] {
+  width: 100%; height: 46px; border: 1px solid var(--dim); border-radius: 12px;
+  padding: 0 14px; background: var(--surf); color: var(--text);
+  font-size: 14px; font-family: var(--fb); outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  -webkit-appearance: none; appearance: none;
+}
+select:focus, input[type=number]:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(250,204,21,0.1); }
+select {
+  cursor: pointer; padding-right: 36px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7'%3E%3Cpath d='M1 1l4.5 4.5L10 1' stroke='%235a6280' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 13px center;
+}
+.amount-wrap { position: relative; }
+.amount-wrap .pfx {
+  position: absolute; left: 13px; top: 50%; transform: translateY(-50%);
+  color: var(--gold); font-weight: 700; font-size: 15px; pointer-events: none;
+}
+.amount-wrap input { padding-left: 26px; }
+
+.btn {
+  width: 100%; height: 48px; border: none; border-radius: 13px;
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  color: #000; font-family: var(--fh); font-size: 14px; font-weight: 700;
+  cursor: pointer; letter-spacing: 0.02em;
+  box-shadow: 0 4px 20px rgba(250,204,21,0.28);
+  transition: transform 0.15s, box-shadow 0.15s, filter 0.15s;
+}
+.btn:hover  { transform: translateY(-2px); box-shadow: 0 6px 28px rgba(250,204,21,0.42); filter: brightness(1.06); }
+.btn:active { transform: translateY(0); }
+
+.sec-hdr {
+  display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;
+  animation: fadeUp 0.5s 0.25s ease both; opacity: 0; animation-fill-mode: forwards;
+}
+.sec-title { font-family: var(--fh); font-size: 11px; font-weight: 700; color: var(--sub); letter-spacing: 0.08em; text-transform: uppercase; }
+.sec-count { font-size: 11px; color: var(--muted); background: var(--dim); border-radius: 6px; padding: 2px 8px; }
+
+.bitem {
+  background: var(--card); border: 1px solid var(--dim); border-radius: 16px;
+  padding: 14px 14px 12px; margin-bottom: 10px;
+  animation: slideIn 0.32s cubic-bezier(0.16,1,0.3,1) both; transition: border-color 0.18s;
+}
+.bitem:hover { border-color: rgba(250,204,21,0.22); }
+.bitem-top { display: flex; align-items: center; gap: 11px; margin-bottom: 12px; }
+.bitem-emoji {
+  width: 40px; height: 40px; background: var(--surf); border: 1px solid var(--dim2);
+  border-radius: 12px; display: flex; align-items: center; justify-content: center;
+  font-size: 19px; flex-shrink: 0;
+}
+.bitem-info { flex: 1; min-width: 0; }
+.bitem-name { font-size: 14px; font-weight: 600; color: var(--text); }
+.bitem-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.bitem-right { text-align: right; flex-shrink: 0; }
+.bitem-budget { font-family: var(--fh); font-size: 16px; font-weight: 700; color: var(--gold); }
+.bitem-spent  { font-size: 11px; color: var(--sub); margin-top: 2px; }
+
+.prog-wrap { margin-bottom: 6px; }
+.prog-track { width: 100%; height: 7px; background: var(--dim); border-radius: 4px; overflow: hidden; }
+.prog-fill { height: 100%; border-radius: 4px; transition: width 0.9s cubic-bezier(0.16,1,0.3,1); }
+.prog-labels { display: flex; justify-content: space-between; margin-top: 5px; font-size: 10px; color: var(--muted); }
+.prog-pct { font-weight: 600; }
+.prog-fill.safe { background: linear-gradient(90deg, #4ade80, #22c55e); }
+.prog-fill.warn { background: linear-gradient(90deg, #fb923c, #f59e0b); }
+.prog-fill.over { background: linear-gradient(90deg, #f87171, #ef4444); }
+
+.status-pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 10px; padding: 2px 8px; border-radius: 20px; font-weight: 600; margin-top: 6px;
+}
+.status-pill.safe { background: rgba(74,222,128,0.12); color: #4ade80; }
+.status-pill.warn { background: rgba(251,146,60,0.12);  color: #fb923c; }
+.status-pill.over { background: rgba(248,113,113,0.12); color: #f87171; }
+
+.del-budget {
+  background: none; border: none; color: var(--muted); font-size: 13px;
+  cursor: pointer; padding: 3px 6px; border-radius: 6px; font-family: var(--fb);
+  transition: color 0.15s, background 0.15s; margin-left: 6px;
+}
+.del-budget:hover { color: var(--red); background: rgba(248,113,113,0.1); }
+
+.empty { text-align: center; padding: 40px 20px; color: var(--muted); font-size: 14px; animation: fadeUp 0.4s ease both; }
+.empty-icon { font-size: 44px; margin-bottom: 10px; opacity: 0.3; }
+.empty p { line-height: 1.6; }
+
+#toast {
+  position: fixed; bottom: 20px; left: 50%;
+  transform: translateX(-50%) translateY(60px);
+  background: #0a1a0f; border: 1px solid rgba(74,222,128,0.3);
+  color: var(--green); font-size: 13px; font-weight: 500;
+  padding: 10px 22px; border-radius: 28px;
+  box-shadow: 0 6px 28px rgba(0,0,0,0.5);
+  pointer-events: none; z-index: 999; opacity: 0;
+  transition: transform 0.38s cubic-bezier(0.16,1,0.3,1), opacity 0.38s;
+  white-space: nowrap;
+}
+#toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(4px); z-index: 100;
+  display: flex; align-items: flex-end; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity 0.25s;
+}
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal-box {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 24px 24px 0 0; padding: 20px 18px 32px;
+  width: 100%; max-width: 460px;
+  transform: translateY(40px); transition: transform 0.35s cubic-bezier(0.16,1,0.3,1);
+}
+.modal-overlay.open .modal-box { transform: translateY(0); }
+.modal-handle { width: 36px; height: 4px; background: var(--dim2); border-radius: 2px; margin: 0 auto 16px; }
+.modal-title { font-family: var(--fh); font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+.modal-sub   { font-size: 12px; color: var(--sub); margin-bottom: 16px; }
+
+@keyframes fadeDown { from{opacity:0;transform:translateY(-14px)} to{opacity:1;transform:translateY(0)} }
+@keyframes fadeUp   { from{opacity:0;transform:translateY(18px)}  to{opacity:1;transform:translateY(0)} }
+@keyframes slideIn  { from{opacity:0;transform:translateX(-16px)} to{opacity:1;transform:translateX(0)} }
+@keyframes shake    {
+  0%,100%{transform:translateX(0)} 20%{transform:translateX(-7px)}
+  40%{transform:translateX(7px)}   60%{transform:translateX(-4px)} 80%{transform:translateX(4px)}
+}
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--dim); border-radius: 2px; }
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+input[type=number] { -moz-appearance: textfield; }
+</style>
+</head>
+<body>
+
+<div id="toast"></div>
+
+<div class="modal-overlay" id="spendModal">
+  <div class="modal-box">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modalTitle">Kharcha Add Karo</div>
+    <div class="modal-sub" id="modalSub">Category ka kharcha likhein</div>
+    <div class="flabel">Kharcha Amount (₹)</div>
+    <div class="amount-wrap" style="margin-bottom:14px;">
+      <span class="pfx">₹</span>
+      <input type="number" id="spendAmt" placeholder="0" min="1">
+    </div>
+    <button class="btn" onclick="saveSpend()">✓ Kharcha Save Karo</button>
+    <button onclick="closeModal()" style="width:100%;height:40px;border:none;background:none;color:var(--sub);font-family:var(--fb);font-size:13px;cursor:pointer;margin-top:8px;">Cancel</button>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-icon">🎯</div>
+      <div>
+        <div class="topbar-title">Budget Set Karo</div>
+        <div class="topbar-sub">PAISATRACK • MONTHLY</div>
+      </div>
+    </div>
+    <div class="total-badge">
+      <div class="tb-label">Total Budget</div>
+      <div class="tb-val" id="totalBudget">₹0</div>
+    </div>
+  </div>
+
+  <div class="card" style="animation: fadeUp 0.5s 0.1s ease both; opacity:0; animation-fill-mode:forwards;">
+    <div class="card-head">
+      <div class="card-head-icon">➕</div>
+      <div class="card-head-title">Naya Budget Set Karo</div>
+    </div>
+
+    <div class="frow">
+      <div class="fcol">
+        <div class="flabel">Category</div>
+        <select id="bcat">
+          <option value="🏠 Rent/Makaan">🏠 Rent/Makaan</option>
+          <option value="🛒 Grocery">🛒 Grocery</option>
+          <option value="⛽ Petrol">⛽ Petrol</option>
+          <option value="📱 Recharge">📱 Recharge</option>
+          <option value="🍽️ Khana">🍽️ Khana</option>
+          <option value="🏥 Medical">🏥 Medical</option>
+          <option value="📚 Padhai">📚 Padhai</option>
+          <option value="🎮 Manoranjan">🎮 Manoranjan</option>
+          <option value="👕 Kapde">👕 Kapde</option>
+          <option value="💡 Bijli/Paani">💡 Bijli/Paani</option>
+          <option value="🚌 Travel">🚌 Travel</option>
+          <option value="🛍️ Aur Kharche">🛍️ Aur Kharche</option>
+        </select>
+      </div>
+      <div class="fcol">
+        <div class="flabel">Monthly Budget (₹)</div>
+        <div class="amount-wrap">
+          <span class="pfx">₹</span>
+          <input type="number" id="bamt" placeholder="5000" min="1">
+        </div>
+      </div>
+    </div>
+
+    <button class="btn" onclick="saveBudget()">🎯 Budget Save Karo</button>
+  </div>
+
+  <div class="sec-hdr">
+    <div class="sec-title">Saved Budgets</div>
+    <span class="sec-count" id="budgetCount">0 categories</span>
+  </div>
+
+  <div id="budgetList"></div>
+
+</div>
+
+<script>
+
+/* ═══════════════════════════════════════════
+   👇 VIKAS — YAHAN SE DATA SAVE HOTA HAI
+   Yeh KEY hai jo dashboard se connect karti hai
+   Dashboard mein: const BUDGET_KEY = 'pt_budgets_v2'
+═══════════════════════════════════════════ */
+const KEY = 'pt_budgets_v2'; // ← VIKAS: YAHI KEY DASHBOARD SE MILTI HAI
+/* ═══════════════════════════════════════════ */
+
+let budgets = JSON.parse(localStorage.getItem(KEY) || '[]');
+let editId  = null;
+
+/* ═══════════════════════════════════════════
+   👇 VIKAS — YAHAN DATA LOCALSTORAGE MEIN
+   SAVE HOTA HAI — ISKE BAAD GRAPH UPDATE HOGA
+═══════════════════════════════════════════ */
+function save() {
+  localStorage.setItem(KEY, JSON.stringify(budgets)); // ← VIKAS: YAHAN SAVE HOTA HAI
+}
+/* ═══════════════════════════════════════════ */
+
+function progClass(pct) {
+  if (pct >= 100) return 'over';
+  if (pct >= 75)  return 'warn';
+  return 'safe';
+}
+
+function statusLabel(pct) {
+  if (pct >= 100) return ['over', '⚠️ Budget khatam!'];
+  if (pct >= 75)  return ['warn', '⚡ Limit ke paas'];
+  return ['safe', '✓ Safe hai'];
+}
+
+/* ═══════════════════════════════════════════
+   👇 VIKAS — YAHAN BUTTON CLICK HONE KE BAAD
+   DATA SAVE HOTA HAI AUR GRAPH PAGE KHULTA HAI
+═══════════════════════════════════════════ */
+function saveBudget() {
+  const cat = document.getElementById('bcat').value;
+  const amt = parseFloat(document.getElementById('bamt').value);
+
+  if (!amt || amt <= 0) { shake('bamt'); return; }
+
+  const existing = budgets.find(b => b.cat === cat);
+  if (existing) {
+    existing.budget = amt;
+    toast('✏️ ' + cat.split(' ').slice(1).join(' ') + ' budget update ho gaya!');
+  } else {
+    budgets.push({ id: Date.now(), cat, budget: amt, spent: 0 });
+    toast('✓ ' + cat.split(' ').slice(1).join(' ') + ' — ₹' + amt.toLocaleString('en-IN') + ' budget set ho gaya!');
+  }
+
+  save();                                        // ← VIKAS: PEHLE SAVE
+  document.getElementById('bamt').value = '';   // ← VIKAS: PHIR FORM RESET
+  render();                                      // ← VIKAS: PHIR LIST UPDATE
+
+  // ← VIKAS: SABSE LAST MEIN REDIRECT — 800ms baad graph page khulega
+  setTimeout(() => {
+    window.location.href = 'ghjj.html'; // ← VIKAS: GRAPH PAGE KA NAAM YAHAN HAI
+  }, 800);
+}
+/* ═══════════════════════════════════════════ */
+
+function delBudget(id) {
+  budgets = budgets.filter(b => b.id !== id);
+  save(); render();
+}
+
+function openSpend(id) {
+  editId = id;
+  const b = budgets.find(b => b.id === id);
+  if (!b) return;
+  const catName = b.cat.split(' ').slice(1).join(' ');
+  document.getElementById('modalTitle').textContent = catName + ' – Kharcha';
+  document.getElementById('modalSub').textContent   =
+    'Budget: ₹' + b.budget.toLocaleString('en-IN') + ' | Kharch hua: ₹' + b.spent.toLocaleString('en-IN');
+  document.getElementById('spendAmt').value = '';
+  document.getElementById('spendModal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('spendModal').classList.remove('open');
+  editId = null;
+}
+
+/* ═══════════════════════════════════════════
+   👇 VIKAS — SPEND MODAL SE BHI DATA SAVE HOTA HAI
+═══════════════════════════════════════════ */
+function saveSpend() {
+  const amt = parseFloat(document.getElementById('spendAmt').value);
+  if (!amt || amt <= 0) { shake('spendAmt'); return; }
+  const b = budgets.find(b => b.id === editId);
+  if (!b) return;
+  b.spent += amt;
+  save(); // ← VIKAS: YAHAN BHI SAVE HOTA HAI
+  closeModal();
+  toast('💸 ₹' + amt.toLocaleString('en-IN') + ' kharcha add ho gaya!');
+  render();
+}
+/* ═══════════════════════════════════════════ */
+
+function resetSpent(id) {
+  const b = budgets.find(b => b.id === id);
+  if (!b) return;
+  b.spent = 0;
+  save(); render();
+  toast('🔄 Kharcha reset ho gaya!');
+}
+
+function render() {
+  const list = document.getElementById('budgetList');
+  const total = budgets.reduce((s, b) => s + b.budget, 0);
+  document.getElementById('totalBudget').textContent = '₹' + total.toLocaleString('en-IN');
+  document.getElementById('budgetCount').textContent = budgets.length + ' categor' + (budgets.length === 1 ? 'y' : 'ies');
+
+  if (!budgets.length) {
+    list.innerHTML = `
+      <div class="empty">
+        <div class="empty-icon">🎯</div>
+        <p>Abhi koi budget set nahi hai.<br>Upar se category choose karke<br>budget set karo!</p>
+      </div>`;
+    return;
+  }
+
+  list.innerHTML = budgets.map((b, i) => {
+    const emoji    = b.cat.split(' ')[0];
+    const catName  = b.cat.split(' ').slice(1).join(' ');
+    const pct      = Math.min(Math.round((b.spent / b.budget) * 100), 100);
+    const rawPct   = Math.round((b.spent / b.budget) * 100);
+    const cls      = progClass(rawPct);
+    const [sCls, sLabel] = statusLabel(rawPct);
+    const remaining = b.budget - b.spent;
+
+    return `
+      <div class="bitem" style="animation-delay:${i * 0.05}s">
+        <div class="bitem-top">
+          <div class="bitem-emoji">${emoji}</div>
+          <div class="bitem-info">
+            <div class="bitem-name">${catName}</div>
+            <div class="bitem-meta">Budget: ₹${b.budget.toLocaleString('en-IN')}</div>
+            <span class="status-pill ${sCls}">${sLabel}</span>
+          </div>
+          <div class="bitem-right">
+            <div class="bitem-budget">₹${b.spent.toLocaleString('en-IN')}</div>
+            <div class="bitem-spent">kharch hua</div>
+            <button class="del-budget" onclick="delBudget(${b.id})" title="Delete">✕</button>
+          </div>
+        </div>
+        <div class="prog-wrap">
+          <div class="prog-track">
+            <div class="prog-fill ${cls}" style="width:${pct}%"></div>
+          </div>
+          <div class="prog-labels">
+            <span>₹0</span>
+            <span class="prog-pct" style="color:${cls==='over'?'var(--red)':cls==='warn'?'var(--orange)':'var(--green)'}">${rawPct}% used</span>
+            <span>₹${b.budget.toLocaleString('en-IN')}</span>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:4px;">
+          <button onclick="openSpend(${b.id})" style="flex:1;height:38px;border:none;border-radius:10px;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#000;font-family:var(--fh);font-size:12px;font-weight:700;cursor:pointer;">+ Kharcha Add</button>
+          <button onclick="resetSpent(${b.id})" style="height:38px;padding:0 14px;border:1px solid var(--dim2);border-radius:10px;background:var(--surf);color:var(--sub);font-family:var(--fb);font-size:12px;cursor:pointer;">Reset</button>
+        </div>
+        <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--dim);display:flex;justify-content:space-between;">
+          <div style="text-align:center;flex:1;">
+            <div style="font-size:10px;color:var(--muted);margin-bottom:3px;">BUDGET</div>
+            <div style="font-family:var(--fh);font-size:13px;font-weight:700;color:var(--gold)">₹${b.budget.toLocaleString('en-IN')}</div>
+          </div>
+          <div style="width:1px;background:var(--dim);"></div>
+          <div style="text-align:center;flex:1;">
+            <div style="font-size:10px;color:var(--muted);margin-bottom:3px;">KHARCH HUA</div>
+            <div style="font-family:var(--fh);font-size:13px;font-weight:700;color:var(--red)">₹${b.spent.toLocaleString('en-IN')}</div>
+          </div>
+          <div style="width:1px;background:var(--dim);"></div>
+          <div style="text-align:center;flex:1;">
+            <div style="font-size:10px;color:var(--muted);margin-bottom:3px;">BACHA HAI</div>
+            <div style="font-family:var(--fh);font-size:13px;font-weight:700;color:${remaining<0?'var(--red)':'var(--green)'}">₹${Math.abs(remaining).toLocaleString('en-IN')}</div>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function shake(id) {
+  const el = document.getElementById(id);
+  el.style.borderColor = '#f87171';
+  el.style.animation   = 'shake 0.35s ease';
+  el.focus();
+  setTimeout(() => { el.style.borderColor=''; el.style.animation=''; }, 600);
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+document.getElementById('spendModal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    if (document.getElementById('spendModal').classList.contains('open')) saveSpend();
+    else saveBudget();
+  }
+  if (e.key === 'Escape') closeModal();
+});
+
+render();
+</script>
+</body>
+</html>

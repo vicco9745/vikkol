@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PaisaTrack Analytics Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:     #07091c;
+  --card:   rgba(20,24,58,0.92);
+  --border: rgba(79,126,247,0.15);
+  --blue:   #4F7EF7;
+  --purple: #B39DDB;
+  --green:  #5EE8A0;
+  --gold:   #facc15;
+  --red:    #FF6B8A;
+  --orange: #FFB74D;
+  --text:   #e8eaf6;
+  --muted:  #778;
+  --dim:    #445;
+  --fh:     'Sora', sans-serif;
+  --fb:     'DM Sans', sans-serif;
+}
+
+body {
+  background: var(--bg);
+  background-image:
+    radial-gradient(ellipse at 20% 20%, rgba(79,126,247,0.06) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 80%, rgba(179,157,219,0.05) 0%, transparent 60%);
+  font-family: var(--fb);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* ── HEADER ── */
+header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap; gap: 12px;
+  animation: fadeUp 0.5s ease both;
+}
+.logo { display: flex; align-items: center; gap: 12px; }
+.logo-icon {
+  width: 38px; height: 38px; border-radius: 12px;
+  background: linear-gradient(135deg, var(--blue), #9C6EFA);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; font-weight: 700; color: #fff;
+  box-shadow: 0 4px 18px rgba(79,126,247,0.45);
+}
+.logo-text h1 { font-family: var(--fh); font-size: 16px; font-weight: 700; color: #fff; }
+.logo-text p  { font-size: 9px; color: var(--dim); letter-spacing: 0.1em; }
+
+.back-btn {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  display: flex; align-items: center; justify-content: center;
+  color: #eee; font-size: 18px; text-decoration: none;
+  transition: border-color 0.2s, background 0.2s;
+}
+.back-btn:hover { border-color: var(--blue); background: rgba(79,126,247,0.1); }
+
+/* ── MAIN ── */
+main { padding: 20px 20px; display: flex; flex-direction: column; gap: 18px; }
+
+/* ── STAT CARDS ── */
+.stats-row {
+  display: flex; gap: 12px; flex-wrap: wrap;
+  animation: fadeUp 0.6s 0.1s ease both; opacity: 0; animation-fill-mode: forwards;
+}
+.stat-card {
+  flex: 1 1 130px; min-width: 120px;
+  background: var(--card); border-radius: 16px; padding: 16px 16px;
+  display: flex; flex-direction: column; gap: 5px;
+  transition: transform 0.2s;
+}
+.stat-card:hover { transform: translateY(-3px); }
+.stat-label { font-size: 10px; color: var(--muted); letter-spacing: 0.04em; }
+.stat-value { font-family: var(--fh); font-size: 20px; font-weight: 700; color: #eef; }
+.stat-delta { font-size: 11px; }
+.stat-delta.up   { color: var(--green); }
+.stat-delta.down { color: var(--red); }
+
+/* ── CHART CARD ── */
+.chart-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px; padding: 20px 18px 14px;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.3);
+  animation: fadeUp 0.7s 0.2s ease both; opacity: 0; animation-fill-mode: forwards;
+}
+.chart-header {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-bottom: 16px; flex-wrap: wrap; gap: 8px;
+}
+.chart-title { font-family: var(--fh); font-size: 13px; font-weight: 600; color: #dde; }
+.chart-sub   { font-size: 10px; color: var(--dim); margin-top: 2px; }
+.legend { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #99a; }
+.dot { width: 9px; height: 9px; border-radius: 50%; }
+
+/* ── EMPTY STATE ── */
+.empty-state {
+  text-align: center; padding: 32px 16px;
+  color: var(--muted); font-size: 13px;
+}
+.empty-state .ei { font-size: 36px; opacity: 0.3; margin-bottom: 8px; }
+
+/* ── CATEGORY GRID ── */
+.cat-grid {
+  display: flex; gap: 12px; flex-wrap: wrap;
+  animation: fadeUp 0.7s 0.3s ease both; opacity: 0; animation-fill-mode: forwards;
+}
+.cat-card {
+  flex: 1 1 140px; min-width: 130px;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 16px; padding: 14px 14px;
+}
+.cat-card .cc-top { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.cat-card .cc-emoji {
+  width: 34px; height: 34px; border-radius: 10px;
+  background: rgba(255,255,255,0.06);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+}
+.cat-card .cc-name  { font-size: 12px; font-weight: 600; color: #ccd; }
+.cat-card .cc-total { font-family: var(--fh); font-size: 16px; font-weight: 700; }
+.cat-card .cc-count { font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+/* ── PROG BAR ── */
+.prog-track { width: 100%; height: 5px; background: rgba(255,255,255,0.07); border-radius: 3px; margin-top: 8px; overflow: hidden; }
+.prog-fill  { height: 100%; border-radius: 3px; transition: width 0.9s cubic-bezier(0.16,1,0.3,1); }
+
+/* ── TOOLTIP ── */
+#tooltip {
+  position: fixed; pointer-events: none;
+  background: rgba(8,10,28,0.97);
+  border: 1px solid rgba(79,126,247,0.35);
+  border-radius: 10px; padding: 10px 14px;
+  font-size: 12px; color: #eef;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+  display: none; z-index: 999;
+  font-family: var(--fb); min-width: 120px;
+}
+#tooltip .tip-label { color: #99a; font-size: 11px; margin-bottom: 5px; }
+#tooltip .tip-row { display: flex; justify-content: space-between; gap: 14px; margin: 2px 0; }
+#tooltip .tip-val { font-weight: 600; }
+
+/* ── TOAST ── */
+#toast {
+  position: fixed; bottom: 20px; left: 50%;
+  transform: translateX(-50%) translateY(60px);
+  background: #0a1a10;
+  border: 1px solid rgba(94,232,160,0.3);
+  color: var(--green); font-size: 13px; font-weight: 500;
+  padding: 10px 22px; border-radius: 28px;
+  box-shadow: 0 6px 28px rgba(0,0,0,0.5);
+  pointer-events: none; z-index: 9999; opacity: 0;
+  transition: transform 0.38s cubic-bezier(0.16,1,0.3,1), opacity 0.38s;
+  white-space: nowrap;
+}
+#toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+/* ── FOOTER ── */
+footer { text-align: center; font-size: 10px; color: var(--dim); padding: 6px 0 24px; letter-spacing: 0.07em; }
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(22px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 500px) {
+  header, main { padding: 14px; }
+  .stat-value { font-size: 17px; }
+}
+
+canvas { display: block; }
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: #2a2f45; border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<div id="tooltip">
+  <div class="tip-label" id="tip-label"></div>
+  <div class="tip-row"><span id="tip-k1"></span><span class="tip-val" id="tip-v1"></span></div>
+  <div class="tip-row"><span id="tip-k2"></span><span class="tip-val" id="tip-v2"></span></div>
+</div>
+
+<div id="toast"></div>
+
+<!-- HEADER -->
+<header>
+  <a class="back-btn" href="giy.html">←</a>
+  <div class="logo">
+    <div class="logo-icon">₹</div>
+    <div class="logo-text">
+      <h1>PaisaTrack</h1>
+      <p>ANALYTICS DASHBOARD</p>
+    </div>
+  </div>
+  <div style="font-size:11px;color:var(--muted);text-align:right;">
+    <div id="hdr-date" style="color:#99a;"></div>
+    <div id="hdr-total" style="font-family:var(--fh);font-size:14px;font-weight:700;color:var(--green);margin-top:2px;"></div>
+  </div>
+</header>
+
+<main>
+
+  <!-- STAT CARDS -->
+  <div class="stats-row" id="statsRow">
+    <div class="stat-card" style="border:1px solid rgba(79,126,247,0.2);">
+      <span class="stat-label">Kul Aamdani</span>
+      <span class="stat-value" id="s-income">₹0</span>
+      <span class="stat-delta up" id="s-income-d">— entries</span>
+    </div>
+    <div class="stat-card" style="border:1px solid rgba(255,107,138,0.2);">
+      <span class="stat-label">Kul Kharcha</span>
+      <span class="stat-value" id="s-expense">₹0</span>
+      <span class="stat-delta down" id="s-expense-d">— entries</span>
+    </div>
+    <div class="stat-card" style="border:1px solid rgba(94,232,160,0.2);">
+      <span class="stat-label">Bacha Paisa</span>
+      <span class="stat-value" id="s-balance">₹0</span>
+      <span class="stat-delta up" id="s-balance-d">Net balance</span>
+    </div>
+    <div class="stat-card" style="border:1px solid rgba(250,204,21,0.2);">
+      <span class="stat-label">Is Mahine</span>
+      <span class="stat-value" id="s-month">₹0</span>
+      <span class="stat-delta up" id="s-month-d">income</span>
+      
+        <div class="sec-hdr">
+   
+    
+    </div>
+  </div>
+
+  <!-- LINE CHART — AAMDANI TREND -->
+  <div class="chart-card">
+    <div class="chart-header">
+      <div>
+        <div class="chart-title">Aamdani Trend</div>
+        <div class="chart-sub" id="lineChartSub">Abhi koi data nahi — form se add karo</div>
+      </div>
+      <div class="legend">
+        <div class="legend-item"><div class="dot" style="background:#5EE8A0;box-shadow:0 0 6px #5EE8A0"></div>Income</div>
+        <div class="legend-item"><div class="dot" style="background:#FF6B8A;box-shadow:0 0 6px #FF6B8A"></div>Kharcha</div>
+      </div>
+    </div>
+    <canvas id="lineChart" height="200"></canvas>
+  </div>
+
+  <!-- KHARCHA CHART -->
+  <div class="chart-card">
+    <div class="chart-header">
+      <div>
+        <div class="chart-title">Kharcha by Category</div>
+        <div class="chart-sub">Category-wise kharcha breakdown</div>
+      </div>
+    </div>
+    <canvas id="barChart" height="180"></canvas>
+  </div>
+
+  <!-- CATEGORY CARDS -->
+  <div class="cat-grid" id="catGrid"></div>
+
+  <footer>PAISATRACK ANALYTICS &nbsp;•&nbsp; Live Data &nbsp;•&nbsp; Mobile-First</footer>
+
+</main>
+
+<script>
+/* ══════════════════════════════════════════════
+   KEYS — same as aapke dusre pages ke keys
+══════════════════════════════════════════════ */
+
+const INCOME_KEY  = 'pt_income_v1';   // aamdani.html ka key
+const EXPENSE_KEY = 'pt_simple';      // paisatrack.html (expense) ka key
+const BUDGET_KEY  = 'pt_budgets_v2';  // budget-set-karo.html ka key
+
+
+/* ══════════════════════════════════════════════
+   DATA LOAD
+══════════════════════════════════════════════ */
+function loadData() {
+  const incomes  = JSON.parse(localStorage.getItem(INCOME_KEY)  || '[]');
+  const expenses = JSON.parse(localStorage.getItem(EXPENSE_KEY) || '[]');
+  const budgets  = JSON.parse(localStorage.getItem(BUDGET_KEY)  || '[]');
+  return { incomes, expenses, budgets };
+}
+
+/* ══════════════════════════════════════════════
+   UTILITY
+══════════════════════════════════════════════ */
+const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+function fmt(n) { return '₹' + Math.round(n).toLocaleString('en-IN'); }
+
+function hexAlpha(hex, a) {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+const tip = document.getElementById('tooltip');
+function showTip(x, y, label, k1, v1, k2, v2) {
+  document.getElementById('tip-label').textContent = label;
+  document.getElementById('tip-k1').textContent = k1;
+  document.getElementById('tip-v1').textContent = v1;
+  document.getElementById('tip-k2').textContent = k2 || '';
+  document.getElementById('tip-v2').textContent = v2 || '';
+  tip.style.display = 'block';
+  tip.style.left = (x + 14) + 'px';
+  tip.style.top  = (y - 10) + 'px';
+}
+function hideTip() { tip.style.display = 'none'; }
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+/* ══════════════════════════════════════════════
+   GROUP BY MONTH
+══════════════════════════════════════════════ */
+function groupByMonth(entries, amtKey) {
+  // amtKey: 'amt' for income, 'amount' for expense
+  const map = {};
+  entries.forEach(e => {
+    const d = e.date || e.dt;
+    if (!d) return;
+    const key = d.slice(0, 7); // YYYY-MM
+    map[key] = (map[key] || 0) + (e[amtKey] || 0);
+  });
+  return map;
+}
+
+/* ══════════════════════════════════════════════
+   UPDATE STAT CARDS
+══════════════════════════════════════════════ */
+function updateStats(incomes, expenses) {
+  const totalIncome  = incomes.reduce((s,i)  => s + (i.amt    || 0), 0);
+  const totalExpense = expenses.reduce((s,e) => s + (e.amount || 0), 0);
+  const balance      = totalIncome - totalExpense;
+
+  // This month
+  const thisMonth = new Date().toISOString().slice(0,7);
+  const monthIncome = incomes.filter(i => (i.date||'').startsWith(thisMonth))
+                             .reduce((s,i) => s + (i.amt||0), 0);
+
+  document.getElementById('s-income').textContent   = fmt(totalIncome);
+  document.getElementById('s-income-d').textContent = incomes.length + ' entries';
+  document.getElementById('s-expense').textContent  = fmt(totalExpense);
+  document.getElementById('s-expense-d').textContent= expenses.length + ' entries';
+  document.getElementById('s-balance').textContent  = fmt(balance);
+  document.getElementById('s-balance-d').textContent= balance >= 0 ? '▲ Surplus' : '▼ Deficit';
+  document.getElementById('s-balance-d').className  = 'stat-delta ' + (balance >= 0 ? 'up' : 'down');
+  document.getElementById('s-month').textContent    = fmt(monthIncome);
+  document.getElementById('s-month-d').textContent  = months[new Date().getMonth()] + ' income';
+
+  // Header
+  const d = new Date();
+  document.getElementById('hdr-date').textContent  = d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+  document.getElementById('hdr-total').textContent = fmt(totalIncome);
+}
+
+/* ══════════════════════════════════════════════
+   LINE CHART — from ZERO, animates up
+══════════════════════════════════════════════ */
+let lineAnimRef = null;
+
+function drawLineChart(incomes, expenses) {
+  const canvas = document.getElementById('lineChart');
+  const parent = canvas.parentElement;
+  canvas.width  = parent.clientWidth - 36;
+  const W = canvas.width, H = 200;
+  const ctx = canvas.getContext('2d');
+
+  // Build month keys (last 6 months)
+  const now    = new Date();
+  const keys   = [];
+  const labels = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    keys.push(d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0'));
+    labels.push(months[d.getMonth()]);
+  }
+
+  const incMap = groupByMonth(incomes,  'amt');
+  const expMap = groupByMonth(expenses, 'amount');
+
+  const incVals = keys.map(k => incMap[k] || 0);
+  const expVals = keys.map(k => expMap[k] || 0);
+
+  const maxVal = Math.max(...incVals, ...expVals, 1);
+
+  // Update subtitle
+  const hasData = incVals.some(v=>v>0) || expVals.some(v=>v>0);
+  document.getElementById('lineChartSub').textContent = hasData
+    ? 'Last 6 months ka income vs kharcha'
+    : 'Abhi koi data nahi — form se add karo';
+
+  if (!hasData) {
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle = 'rgba(255,255,255,0.04)';
+    ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = '#445';
+    ctx.font = '13px DM Sans, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Form se data save karo — graph automatically update hoga', W/2, H/2);
+    return;
+  }
+
+  const PAD = { top: 16, right: 16, bottom: 36, left: 48 };
+  const cW  = W - PAD.left - PAD.right;
+  const cH  = H - PAD.top  - PAD.bottom;
+
+  function draw(progress) {
+    ctx.clearRect(0, 0, W, H);
+
+    // Grid
+    for (let i = 0; i <= 4; i++) {
+      const y = PAD.top + (i / 4) * cH;
+      ctx.beginPath();
+      ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+      ctx.lineWidth = 1;
+      ctx.moveTo(PAD.left, y); ctx.lineTo(PAD.left + cW, y);
+      ctx.stroke();
+      ctx.fillStyle = '#445';
+      ctx.font = '10px DM Sans, sans-serif';
+      ctx.textAlign = 'right';
+      const val = maxVal * (1 - i/4);
+      ctx.fillText(val >= 1000 ? (val/1000).toFixed(1)+'k' : val.toFixed(0), PAD.left - 6, y + 4);
+    }
+
+    // X labels
+    labels.forEach((lbl, i) => {
+      const x = PAD.left + (i / (labels.length-1)) * cW;
+      ctx.fillStyle = '#556';
+      ctx.font = '10px DM Sans, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(lbl, x, PAD.top + cH + 20);
+    });
+
+    // Draw line helper
+    function drawLine(vals, color, filled) {
+      const pts = vals.map((v, i) => ({
+        x: PAD.left + (i / (vals.length-1)) * cW,
+        y: PAD.top  + cH - (v / maxVal) * cH * progress
+      }));
+
+      // Fill area
+      if (filled) {
+        ctx.beginPath();
+        ctx.moveTo(pts[0].x, PAD.top + cH);
+        pts.forEach(p => ctx.lineTo(p.x, p.y));
+        ctx.lineTo(pts[pts.length-1].x, PAD.top + cH);
+        ctx.closePath();
+        const grad = ctx.createLinearGradient(0, PAD.top, 0, PAD.top + cH);
+        grad.addColorStop(0, hexAlpha(color, 0.18));
+        grad.addColorStop(1, hexAlpha(color, 0.01));
+        ctx.fillStyle = grad;
+        ctx.fill();
+      }
+
+      // Line
+      ctx.beginPath();
+      ctx.moveTo(pts[0].x, pts[0].y);
+      for (let i = 1; i < pts.length; i++) {
+        const mx = (pts[i-1].x + pts[i].x) / 2;
+        ctx.bezierCurveTo(mx, pts[i-1].y, mx, pts[i].y, pts[i].x, pts[i].y);
+      }
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2.5;
+      ctx.shadowColor = color;
+      ctx.shadowBlur = 8;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // Dots
+      pts.forEach(p => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 4, 0, Math.PI*2);
+        ctx.fillStyle = color;
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 12;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      });
+
+      return pts;
+    }
+
+    drawLine(expVals, '#FF6B8A', false);
+    const incPts = drawLine(incVals, '#5EE8A0', true);
+    return incPts;
+  }
+
+  // Animate from zero
+  if (lineAnimRef) cancelAnimationFrame(lineAnimRef);
+  let startTs = null;
+  function animate(ts) {
+    if (!startTs) startTs = ts;
+    const p    = Math.min((ts - startTs) / 900, 1);
+    const ease = 1 - Math.pow(1 - p, 3);
+    draw(ease);
+    if (p < 1) lineAnimRef = requestAnimationFrame(animate);
+    else {
+      // Hover after animation
+      setupLineHover(canvas, incVals, expVals, labels, PAD, cW, cH, maxVal);
+    }
+  }
+  lineAnimRef = requestAnimationFrame(animate);
+}
+
+function setupLineHover(canvas, incVals, expVals, labels, PAD, cW, cH, maxVal) {
+  canvas.onmousemove = e => {
+    const rect = canvas.getBoundingClientRect();
+    const mx   = e.clientX - rect.left;
+    let closest = -1, minDist = 30;
+    incVals.forEach((v, i) => {
+      const x = PAD.left + (i / (incVals.length-1)) * cW;
+      const d = Math.abs(mx - x);
+      if (d < minDist) { minDist = d; closest = i; }
+    });
+    if (closest >= 0) {
+      showTip(e.clientX, e.clientY, labels[closest],
+        'Income',  fmt(incVals[closest]),
+        'Kharcha', fmt(expVals[closest]));
+    } else hideTip();
+  };
+  canvas.onmouseleave = () => hideTip();
+}
+
+/* ══════════════════════════════════════════════
+   BAR CHART — Kharcha by Category
+══════════════════════════════════════════════ */
+const CAT_COLORS = {
+  'Rent/Makaan':'#f87171','Grocery':'#4ade80','Petrol':'#fb923c',
+  'Recharge':'#60a5fa','Khana':'#facc15','Medical':'#f472b6',
+  'Padhai':'#a78bfa','Manoranjan':'#22d3ee','Kapde':'#fb7185',
+  'Bijli/Paani':'#fde047','Travel':'#86efac','Aur':'#94a3b8',
+  'Salary':'#4F7EF7','Freelance':'#B39DDB','Business':'#FFB74D',
+};
+
+function drawBarChart(expenses) {
+  const canvas = document.getElementById('barChart');
+  const parent = canvas.parentElement;
+  canvas.width = parent.clientWidth - 36;
+  const W = canvas.width, H = 180;
+  const ctx = canvas.getContext('2d');
+
+  // Group by category
+  const catMap = {};
+  expenses.forEach(e => {
+    const cat = (e.cat || 'Aur').split(' ').slice(1).join(' ') || 'Aur';
+    catMap[cat] = (catMap[cat] || 0) + (e.amount || 0);
+  });
+
+  const entries = Object.entries(catMap).sort((a,b) => b[1]-a[1]).slice(0, 7);
+
+  if (!entries.length) {
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle = '#445';
+    ctx.font = '12px DM Sans, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Koi kharcha data nahi', W/2, H/2);
+    return;
+  }
+
+  const maxVal = entries[0][1];
+  const PAD = { top: 10, right: 14, bottom: 32, left: 14 };
+  const cW  = W - PAD.left - PAD.right;
+  const cH  = H - PAD.top  - PAD.bottom;
+  const barW= (cW / entries.length) * 0.55;
+  const gap = cW / entries.length;
+
+  let hovered = -1;
+
+  function draw(progress) {
+    ctx.clearRect(0,0,W,H);
+
+    entries.forEach(([cat, val], i) => {
+      const x  = PAD.left + gap * i + (gap - barW) / 2;
+      const bH = (val / maxVal) * cH * progress;
+      const y  = PAD.top + cH - bH;
+      const color = CAT_COLORS[cat] || '#4F7EF7';
+      const isHov = hovered === i;
+
+      ctx.save();
+      if (isHov) { ctx.shadowColor = color; ctx.shadowBlur = 16; }
+      const grad = ctx.createLinearGradient(0, y, 0, y+bH);
+      grad.addColorStop(0, color);
+      grad.addColorStop(1, hexAlpha(color, 0.4));
+      ctx.fillStyle = grad;
+      roundRect(ctx, x, y, barW, bH, [5,5,0,0]);
+      ctx.fill();
+      ctx.restore();
+
+      // Label
+      ctx.fillStyle = '#556';
+      ctx.font = '9px DM Sans, sans-serif';
+      ctx.textAlign = 'center';
+      const label = cat.length > 6 ? cat.slice(0,6)+'…' : cat;
+      ctx.fillText(label, x + barW/2, PAD.top + cH + 18);
+    });
+  }
+
+  let startTs = null;
+  function animate(ts) {
+    if (!startTs) startTs = ts;
+    const p    = Math.min((ts - startTs) / 800, 1);
+    const ease = 1 - Math.pow(1-p, 3);
+    draw(ease);
+    if (p < 1) requestAnimationFrame(animate);
+    else {
+      canvas.onmousemove = e => {
+        const rect = canvas.getBoundingClientRect();
+        const mx   = e.clientX - rect.left;
+        hovered = -1;
+        entries.forEach(([cat,val], i) => {
+          const x = PAD.left + gap*i + (gap-barW)/2;
+          if (mx >= x && mx <= x+barW) {
+            hovered = i;
+            showTip(e.clientX, e.clientY, cat, 'Amount', fmt(val), '', '');
+          }
+        });
+        if (hovered < 0) hideTip();
+        draw(1);
+      };
+      canvas.onmouseleave = () => { hovered=-1; hideTip(); draw(1); };
+    }
+  }
+  requestAnimationFrame(animate);
+}
+
+/* ══════════════════════════════════════════════
+   CATEGORY CARDS
+══════════════════════════════════════════════ */
+function renderCatCards(expenses, budgets) {
+  const catMap = {};
+  expenses.forEach(e => {
+    const cat = e.cat || '🛍️ Aur';
+    catMap[cat] = (catMap[cat] || 0) + (e.amount || 0);
+  });
+
+  const grid = document.getElementById('catGrid');
+  const entries = Object.entries(catMap).sort((a,b)=>b[1]-a[1]).slice(0,6);
+
+  if (!entries.length) { grid.innerHTML = ''; return; }
+
+  const total = Object.values(catMap).reduce((a,b)=>a+b, 0);
+
+  grid.innerHTML = entries.map(([cat, val], i) => {
+    const emoji = cat.split(' ')[0];
+    const name  = cat.split(' ').slice(1).join(' ') || cat;
+    const pct   = total > 0 ? Math.round((val/total)*100) : 0;
+    const color = CAT_COLORS[name] || '#4F7EF7';
+    const budget= budgets.find(b => b.cat === cat);
+    const bPct  = budget ? Math.min(Math.round((val/budget.budget)*100),100) : pct;
+
+    return `
+      <div class="cat-card" style="animation:fadeUp 0.5s ${i*0.06}s ease both;opacity:0;animation-fill-mode:forwards;border:1px solid ${hexAlpha(color,0.2)}">
+        <div class="cc-top">
+          <div class="cc-emoji">${emoji}</div>
+          <div>
+            <div class="cc-name">${name}</div>
+          </div>
+        </div>
+        <div class="cc-total" style="color:${color}">${fmt(val)}</div>
+        <div class="cc-count">${pct}% of total kharcha</div>
+        <div class="prog-track">
+          <div class="prog-fill" style="width:${bPct}%;background:${color};"></div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+/* ══════════════════════════════════════════════
+   ROUND RECT
+══════════════════════════════════════════════ */
+function roundRect(ctx, x, y, w, h, r) {
+  if (h <= 0) return;
+  const [tl,tr,br,bl] = Array.isArray(r) ? r : [r,r,r,r];
+  ctx.beginPath();
+  ctx.moveTo(x+tl, y);
+  ctx.lineTo(x+w-tr, y); ctx.quadraticCurveTo(x+w, y, x+w, y+tr);
+  ctx.lineTo(x+w, y+h-br); ctx.quadraticCurveTo(x+w, y+h, x+w-br, y+h);
+  ctx.lineTo(x+bl, y+h); ctx.quadraticCurveTo(x, y+h, x, y+h-bl);
+  ctx.lineTo(x, y+tl); ctx.quadraticCurveTo(x, y, x+tl, y);
+  ctx.closePath();
+}
+
+/* ══════════════════════════════════════════════
+   MAIN RENDER
+══════════════════════════════════════════════ */
+function renderAll() {
+  const { incomes, expenses, budgets } = loadData();
+  updateStats(incomes, expenses);
+  drawLineChart(incomes, expenses);
+  drawBarChart(expenses);
+  renderCatCards(expenses, budgets);
+}
+
+/* ══════════════════════════════════════════════
+   LISTEN FOR STORAGE CHANGES
+   Jab bhi koi form submit kare → dashboard
+   automatically update hoga
+══════════════════════════════════════════════ */
+window.addEventListener('storage', e => {
+  if ([INCOME_KEY, EXPENSE_KEY, BUDGET_KEY].includes(e.key)) {
+    toast('📊 Naya data mila! Chart update ho raha hai…');
+    setTimeout(renderAll, 300);
+  }
+});
+
+/* ══════════════════════════════════════════════
+   RESIZE
+══════════════════════════════════════════════ */
+window.addEventListener('resize', renderAll);
+
+/* ══════════════════════════════════════════════
+   INIT
+══════════════════════════════════════════════ */
+renderAll();
+</script>
+</body>
+</ht
